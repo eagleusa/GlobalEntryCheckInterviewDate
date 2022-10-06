@@ -1,0 +1,47 @@
+﻿@inherits LocationInformationDialogBase
+
+<RadzenCard Class="my-3 rz-background-color-info-lighter rz-shadow-0 rz-border-radius-0" style="margin: 0 calc(-1 * var(--rz-card-padding)); padding: 2rem;">
+    <div class="row">
+        <div class="col-4">
+            <RadzenText Text="Name" TextStyle="TextStyle.Subtitle2" TagName="TagName.P" Class="my-2" />
+            <RadzenText Text="@Model.Name" TextStyle="TextStyle.Body1" TagName="TagName.P" />
+            <RadzenText Text="Address" TextStyle="TextStyle.Subtitle2" TagName="TagName.P" Class="my-2" />
+            <RadzenText Text="@Model.Address" TextStyle="TextStyle.Body1" TagName="TagName.P" />
+            @if (string.IsNullOrWhiteSpace(Model.AddressAdditional) == false)
+            {
+                <RadzenText Text="@Model.AddressAdditional" TextStyle="TextStyle.Body1" TagName="TagName.P" />
+            }
+            <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.P">
+                @($"{Model.City}, {Model.State} {Model.PostalCode}")
+            </RadzenText>
+            <RadzenText Text="@Model.CountryCode" TextStyle="TextStyle.Body1" TagName="TagName.P" />
+            <RadzenText Text="Phone" TextStyle="TextStyle.Subtitle2" TagName="TagName.P" Class="my-2" />
+            @if (string.IsNullOrWhiteSpace(Model.PhoneNumber) == false)
+            {
+                <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.P">
+                    @($"({Model.PhoneNumber[0..3]}) {Model.PhoneNumber[3..6]}-{Model.PhoneNumber[6..10]}")
+                </RadzenText>
+            }
+            @if (string.IsNullOrWhiteSpace(Model.PhoneAltNumber) == false)
+            {
+                <RadzenText Text="Phone #2" TextStyle="TextStyle.Subtitle2" TagName="TagName.P" Class="my-2" />
+                <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.P">
+                    @($"({Model.PhoneAltNumber[0..3]}) {Model.PhoneAltNumber[3..6]}-{Model.PhoneAltNumber[6..10]}")
+                </RadzenText>
+            }
+            @if (string.IsNullOrWhiteSpace(Model.FaxNumber) == false)
+            {
+                <RadzenText Text="Fax" TextStyle="TextStyle.Subtitle2" TagName="TagName.P" Class="my-2" />
+                <RadzenText TextStyle="TextStyle.Body1" TagName="TagName.P">
+                    @($"({Model.FaxNumber[0..3]}) {Model.FaxNumber[3..6]}-{Model.FaxNumber[6..10]}")
+                </RadzenText>
+            }
+        </div>
+        <div class="col-8">
+            <RadzenText Text="Directions" TextStyle="TextStyle.Subtitle2" TagName="TagName.P" Class="my-2" />
+            <RadzenText Text="@Model.Directions" TextStyle="TextStyle.Body1" TagName="TagName.P" Class="my-2" />
+            <RadzenText Text="Notes" TextStyle="TextStyle.Subtitle2" TagName="TagName.P" Class="my-2" />
+            <RadzenText Text="@Model.Notes" TextStyle="TextStyle.Body1" TagName="TagName.P" Class="my-2" />
+        </div>
+    </div>
+</RadzenCard>
