@@ -1,20 +1,24 @@
 ﻿@page "/"
 @inherits IndexBase
-
 <PageTitle>Global Entry Interview Dates Checker</PageTitle>
+<style>
+    .rz-group-header{
+        display: none;
+    }
+</style>
 <RadzenCard>
-    <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H3" Class="my-2">
-        <strong>Global Entry Interview Dates Checker</strong>
+    <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H5" TextAlign="TextAlign.Center" Class="my-2">
+        Global Entry Interview Dates Checker
     </RadzenText>
     <RadzenDataGrid @ref="LocationsGrid" Data="@Locations" TItem="LocationModel" AllowSorting="true"
                     AllowMultiColumnSorting="true" ShowMultiColumnSortingIndex="true"
-                    AllowColumnResize="true" AllowColumnReorder="false" style="height: 40vh; "
+                    AllowColumnResize="true" AllowColumnReorder="false" style="height: 40vh; " Filter="@OnFilter"
                     AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.SimpleWithMenu"
                     AllowRowSelectOnRowClick="true" SelectionMode="DataGridSelectionMode.Multiple" @bind-Value=@SelectedLocations Class="m-4">
         <Columns>
             <RadzenDataGridColumn TItem="LocationModel" Context="Model" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="168px;">
                 <Template Context="Model">
-                    <RadzenButton Shade="Shade.Dark" Click=@(async (args) => await OnClick(Model.Id)) Text="Information" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Shade="Shade.Dark" Click=@(async (args) => await ShowInfo(Model.Id)) Text="Information" ButtonStyle="ButtonStyle.Primary" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="LocationModel" Property="CountryCode" Title="Country" Width="134px;" />
@@ -33,34 +37,38 @@
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">End Date</RadzenText>
                 <RadzenDatePicker @bind-Value=@EndDate DateFormat="d" DateRender=@DateRenderNoWeekends TValue="DateTime?" Class="w-100" />
             </div>
-            <div class="col-1">
+            <div class="col-2 d-flex">
                 @if (SelectedLocations.Any())
                 {
-                    <RadzenButton Shade="Shade.Dark" Click=@(async (args) => await GetInterviews()) Text="Search" ButtonStyle="ButtonStyle.Success" />
+                    <RadzenButton Shade="Shade.Dark" Click=@(async (args) => await GetInterviews()) Text="Search" ButtonStyle="ButtonStyle.Success"
+                              IsBusy=@busy BusyText="Searching ..." class="w-100" />
                 }
             </div>
         </div>
     </RadzenCard>
-    @if (LocationDates.Any())
+    @if (ShowResults)
     {
         <RadzenCard Class="rz-background-color-primary-lighter rz-shadow-0 rz-border-radius-0" style="margin: 0 calc(-1 * var(--rz-card-padding)); padding: 2rem;">
             <RadzenDataGrid @ref="InterviewDatesGrid" Data="@LocationDates" TItem="LocationDatesViewModel" Class="m-4" Style="width: 1000px;"
+                        AllowGrouping="true" HideGroupedColumn="true" Render="@OnRender"
                         AllowSorting="true" AllowMultiColumnSorting="true" AllowColumnResize="true" AllowColumnReorder="false"
                         AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.SimpleWithMenu">
+                <GroupHeaderTemplate>
+                    @context.GroupDescriptor.GetTitle(): @(context.Data.Key ?? ""), Total Available: @context.Data.Count
+                </GroupHeaderTemplate>
+                <EmptyTemplate>
+                    <RadzenText Text="No available appointments for selected location(s) and date range" TextStyle="TextStyle.Subtitle1" TagName="TagName.H2"></RadzenText>
+                </EmptyTemplate>
                 <Columns>
-                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="InterviewDates.Active" Title="Avail" Width="134px;" />
-                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="InterviewDates.Pending" Title="Pending" Width="134px;" />
-                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="InterviewDates.Conflicts" Title="Conflicts" Width="134px;" />
-                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="InterviewDates.Duration" Title="Duration" Width="134px;" />
-                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="InterviewDates.Timestamp" Title="Timestamp" FormatString="{0:U}" />
-                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="InterviewDates.Remote" Title="Remote" Width="120px;" />
+                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="LocationName" Title="Location" />
+                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="Active" Title="Avail" Width="134px;" />
+                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="Pending" Title="Pending" Width="134px;" />
+                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="Conflicts" Title="Conflicts" Width="134px;" />
+                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="Duration" Title="Duration" Width="134px;" />
+                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="Timestamp" Title="Timestamp" FormatString="{0:U}" />
+                    <RadzenDataGridColumn TItem="LocationDatesViewModel" Property="Remote" Title="Remote" Width="120px;" />
                 </Columns>
             </RadzenDataGrid>
-
         </RadzenCard>
     }
 </RadzenCard>
-
-@*Add grouping to the dates grid*@
-
-

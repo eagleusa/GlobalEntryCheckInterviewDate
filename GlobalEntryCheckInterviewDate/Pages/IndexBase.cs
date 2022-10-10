@@ -1,4 +1,7 @@
-﻿namespace GlobalEntryCheckInterviewDate.Pages;
+﻿using System.Xml.Linq;
+using System;
+
+namespace GlobalEntryCheckInterviewDate.Pages;
 
 public class IndexBase : ComponentBase
 {
@@ -11,8 +14,10 @@ public class IndexBase : ComponentBase
     public IEnumerable<LocationModel> Locations { get; set; } = Enumerable.Empty<LocationModel>();
     public IList<LocationModel> SelectedLocations { get; set; } = new List<LocationModel>();
     public DateTime? StartDate { get; set; } = DateTime.Today;
-    public DateTime? EndDate { get; set; } = DateTime.Today.AddYears(1);
-    public IEnumerable<LocationDatesViewModel> LocationDates { get; set; } = new List<LocationDatesViewModel>();
+    public DateTime? EndDate { get; set; } = DateTime.Today.AddMonths(1);
+    public List<LocationDatesViewModel> LocationDates { get; set; } = new List<LocationDatesViewModel>();
+    public bool ShowResults;
+    public bool busy;
     protected override async Task OnInitializedAsync()
     {
         try
@@ -34,7 +39,7 @@ public class IndexBase : ComponentBase
             Console.WriteLine("Invalid JSON.");
         }
     }
-    public async Task OnClick(int id)
+    public async Task ShowInfo(int id)
     {
         var model = Locations.First(f => f.Id == id);
         // Show info dialog
@@ -52,26 +57,50 @@ public class IndexBase : ComponentBase
     }
     public async Task GetInterviews()
     {
+        busy = true;
         LocationDates = new List<LocationDatesViewModel>();
         StartDate ??= DateTime.Today;
         EndDate ??= DateTime.Today.AddYears(1);
+        if (EndDate.Value.Date > StartDate.Value.AddYears(1))
+        {
+            EndDate = StartDate.Value.AddYears(1);
+        }
         foreach (var item in SelectedLocations)
         {
             var apiData = await HttpClient.GetFromJsonAsync<List<InterviewDateModel>>
                 ($"https://ttp.cbp.dhs.gov/schedulerapi/locations/{item.Id}/slots?startTimestamp={StartDate:yyyy-MM-ddTHH:mm}&endTimestamp={EndDate:yyyy-MM-ddTHH:mm}");
             if (apiData.Any(a => a.Active > 0))
             {
-                ((List<LocationDatesViewModel>)LocationDates).Add(new LocationDatesViewModel()
-                {
-                    Location = Locations.First(f => f.Id == item.Id),
-                    InterviewDates = apiData.Where(w => w.Active > 0).ToList()
-                });
+                var testData = apiData.Where(w => w.Active > 0)
+                    .Select(s => new LocationDatesViewModel()
+                    {
+                        LocationName = Locations.First(f => f.Id == item.Id).Name,
+                        Active = s.Active,
+                        Total = s.Total,
+                        Pending = s.Pending,
+                        Conflicts = s.Conflicts,
+                        Duration = s.Duration,
+                        Timestamp = s.Timestamp,
+                        Remote = s.Remote
+                    }).ToList();
+                LocationDates.AddRange(testData);
             }
         }
         StateHasChanged();
+        busy = false;
+        ShowResults = true;
     }
+    public void OnFilter(DataGridColumnFilterEventArgs<LocationModel> args) => SelectedLocations = new List<LocationModel>();
     public void DateRenderNoWeekends(DateRenderEventArgs args)
     {
         args.Disabled = args.Disabled || args.Date.DayOfWeek == DayOfWeek.Sunday || args.Date.DayOfWeek == DayOfWeek.Saturday;
+    }
+    public void OnRender(DataGridRenderEventArgs<LocationDatesViewModel> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Groups.Add(new GroupDescriptor() { Property = "LocationName", Title = "Location", SortOrder = SortOrder.Ascending });
+            StateHasChanged();
+        }
     }
 }
